@@ -2,8 +2,6 @@ import express from "express";
 import Joi from "joi";
 
 import {
-  fetchContacts,
-  updateContactsData,
   listContacts,
   getContactById,
   removeContact,
@@ -15,7 +13,7 @@ export const contactsRouter = express.Router();
 
 contactsRouter.get("/", async (req, res, next) => {
   try {
-    const contacts = await fetchContacts();
+    const contacts = await listContacts();
     res.json({
       status: "success",
       code: 200,
@@ -25,7 +23,7 @@ contactsRouter.get("/", async (req, res, next) => {
     res.status(500).json({
       status: "error",
       code: 500,
-      message: "Internal Server Error",
+      message: `Internal Server Error" ${error}`,
     });
   }
 });
@@ -33,7 +31,7 @@ contactsRouter.get("/", async (req, res, next) => {
 contactsRouter.get("/:contactId", async (req, res, next) => {
   const { contactId } = req.params;
   try {
-    const contact = await fetchContacts(contactId);
+    const contact = await getContactById(contactId);
 
     if (!contact) {
       res.status(404).json(`Contact not found`);
@@ -48,12 +46,23 @@ contactsRouter.get("/:contactId", async (req, res, next) => {
     res.status(500).json({
       status: "error",
       code: 500,
-      message: "Internal Server Error",
+      message: `Internal Server Error ${error}`,
     });
   }
 });
 
 contactsRouter.post("/", async (req, res, next) => {
+  const schema = Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    phone: Joi.string().required(),
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
   const { name, email, phone } = req.body;
 
   if (!name) {
@@ -69,17 +78,17 @@ contactsRouter.post("/", async (req, res, next) => {
   }
 
   try {
-    const newContact = await addContact({ name, email, phone });
+    const contact = await addContact({ name, email, phone });
     res.status(201).json({
       status: "success",
       code: 201,
-      data: newContact,
+      data: contact,
     });
   } catch (error) {
     res.status(500).json({
       status: "error",
       code: 500,
-      message: "Internal Server Error",
+      message: `Internal Server Error ${error}`,
     });
   }
 });
@@ -96,6 +105,16 @@ contactsRouter.delete("/:contactId", async (req, res, next) => {
 });
 
 contactsRouter.put("/:contactId", async (req, res, next) => {
+  const schema = Joi.object({
+    name: Joi.string(),
+    email: Joi.string().email(),
+    phone: Joi.string(),
+  });
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
   const { contactId } = req.params;
   const { name, email, phone } = req.body;
 

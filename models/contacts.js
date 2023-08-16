@@ -2,7 +2,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "path";
 import { nanoid } from "nanoid";
 
-const contactsPath = path.resolve("./modules", "contacts.json");
+const contactsPath = path.resolve("./models", "contacts.json");
 
 export const fetchContacts = async () => {
   try {
