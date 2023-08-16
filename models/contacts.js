@@ -27,10 +27,10 @@ export const updateContactsData = async (contacts) => {
 export const listContacts = async () => {
   try {
     const contacts = await fetchContacts();
-    if (contacts && contacts.length > 0) {
-      console.log("No contacts found.");
-      return [];
-    }
+    // if (contacts && contacts.length > 0) {
+    //   console.log("No contacts found.");
+    //   return [];
+    // }
 
     return contacts;
   } catch (error) {
@@ -42,14 +42,19 @@ export const listContacts = async () => {
 export const getContactById = async (contactId) => {
   try {
     const contacts = await fetchContacts();
-    const elementIndex = contacts.findIndex(
-      (contact) => contact.id === contactId
-    );
-    if (elementIndex === -1) {
-      console.log(`Contact with ID ${contactId} not found.`);
-      return null;
-    }
-    return contacts[elementIndex];
+    const contact = contacts.find((contact) => contact.id === contactId);
+
+    return contact;
+
+    // const elementIndex = contacts.findIndex(
+    //   (contact) => contact.id === contactId
+    // );
+    // console.log("Element Index:", elementIndex);
+    // if (elementIndex === -1) {
+    //   console.log(`Contact with ID ${contactId} not found.`);
+    //   return null;
+    // }
+    // return contacts[elementIndex];
   } catch (error) {
     console.log("Error getting contact by ID:", error.message);
     throw error;
@@ -104,7 +109,7 @@ export const addContact = async (body) => {
 export const updateContact = async (contactId, body) => {
   try {
     const contacts = await fetchContacts();
-    if (!contacts) return false;
+    // if (!contacts) return false;
 
     const elementIndex = contacts.findIndex(
       (contact) => contact.id === contactId
@@ -113,6 +118,7 @@ export const updateContact = async (contactId, body) => {
       console.log(`Contact with ID ${contactId} not found.`);
       return null;
     }
+
     const updatedContact = { ...contacts[elementIndex], ...body };
     contacts[elementIndex] = updatedContact;
 
