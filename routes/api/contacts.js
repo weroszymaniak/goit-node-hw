@@ -34,10 +34,10 @@ contactsRouter.get("/:contactId", async (req, res, next) => {
     const contact = await getContactById(contactId);
 
     if (!contact) {
-      res.status(404).json(`Contact not found`);
+      return res.status(404).json(`Contact not found`);
     }
 
-    res.json({
+    return res.json({
       status: "success",
       code: 200,
       data: { contact },

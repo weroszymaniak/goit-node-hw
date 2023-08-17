@@ -42,19 +42,9 @@ export const listContacts = async () => {
 export const getContactById = async (contactId) => {
   try {
     const contacts = await fetchContacts();
-    const contact = contacts.find((contact) => contact.id === contactId);
+    const contact = contacts.filter((el) => el.id === contactId);
 
     return contact;
-
-    // const elementIndex = contacts.findIndex(
-    //   (contact) => contact.id === contactId
-    // );
-    // console.log("Element Index:", elementIndex);
-    // if (elementIndex === -1) {
-    //   console.log(`Contact with ID ${contactId} not found.`);
-    //   return null;
-    // }
-    // return contacts[elementIndex];
   } catch (error) {
     console.log("Error getting contact by ID:", error.message);
     throw error;
