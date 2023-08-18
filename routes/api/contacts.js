@@ -1,5 +1,4 @@
 import express from "express";
-import Joi from "joi";
 
 import {
   listContacts,
@@ -36,7 +35,6 @@ contactsRouter.get("/:contactId", async (req, res, next) => {
     if (!contact) {
       return res.status(404).json(`Contact not found`);
     }
-
     return res.json({
       status: "success",
       code: 200,
@@ -52,29 +50,10 @@ contactsRouter.get("/:contactId", async (req, res, next) => {
 });
 
 contactsRouter.post("/", async (req, res, next) => {
-  const schema = Joi.object({
-    name: Joi.string().required(),
-    email: Joi.string().email().required(),
-    phone: Joi.string().required(),
-  });
-
-  const { error } = schema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-
   const { name, email, phone } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ message: "missing required name field" });
-  }
-
-  if (!email) {
-    return res.status(400).json({ message: "missing required email field" });
-  }
-
-  if (!phone) {
-    return res.status(400).json({ message: "missing required phone field" });
+  if (!name || !email || !phone) {
+    return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
@@ -105,16 +84,6 @@ contactsRouter.delete("/:contactId", async (req, res, next) => {
 });
 
 contactsRouter.put("/:contactId", async (req, res, next) => {
-  const schema = Joi.object({
-    name: Joi.string(),
-    email: Joi.string().email(),
-    phone: Joi.string(),
-  });
-  const { error } = schema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-
   const { contactId } = req.params;
   const { name, email, phone } = req.body;
 
@@ -122,10 +91,7 @@ contactsRouter.put("/:contactId", async (req, res, next) => {
     return res.status(400).json({ message: "missing fields" });
   }
 
-  const updatedFields = {};
-  if (name) updatedFields.name = name;
-  if (email) updatedFields.email = email;
-  if (phone) updatedFields.phone = phone;
+  const updatedFields = { name, email, phone };
 
   try {
     const updatedContact = await updateContact(contactId, updatedFields);
