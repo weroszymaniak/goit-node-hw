@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 // config();
 
 const MONGODB_URI =
-  "mongodb+srv://weronikaszymaniak:qUdZSdGWtJJG3OgX@hw03-mongodb.rxu1mbs.mongodb.net/?retryWrites=true&w=majority";
+  "mongodb+srv://weronikaszymaniak:qUdZSdGWtJJG3OgX@hw03-mongodb.rxu1mbs.mongodb.net/db-contacts?retryWrites=true&w=majority";
 
 mongoose
   .connect(MONGODB_URI)
