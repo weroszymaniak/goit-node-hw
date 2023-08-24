@@ -6,6 +6,7 @@ import {
   removeContact,
   addContact,
   updateContact,
+  updateStatusContact,
 } from "../../models/contacts.js";
 
 export const contactsRouter = express.Router();
@@ -111,5 +112,26 @@ contactsRouter.put("/:contactId", async (req, res, next) => {
       code: 500,
       message: "Internal Server Error",
     });
+  }
+});
+
+contactsRouter.patch("/:contactId", async (req, res, next) => {
+  const { contactId } = req.params;
+  const { favorite } = req.body;
+
+  if (favorite === undefined) {
+    return res.status(400).json({ message: "missing field favorite" });
+  }
+  try {
+    const existingContact = await getContactById(contactId);
+    if (!existingContact) {
+      return res.status(404).json({ message: "Not found" });
+    }
+    const updatedContact = await updateStatusContact(contactId, {
+      favorite,
+    });
+    res.status(200).json(updatedContact);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
