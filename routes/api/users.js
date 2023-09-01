@@ -8,14 +8,13 @@ import {
   addUser,
   loginUser,
   resizeAndSaveAvatar,
-  patchAvatar,
 } from "../../models/users.js";
 
 import Joi from "joi";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
 import Jimp from "jimp";
+import fs from "fs/promises";
 
 dotenv.config();
 export const usersRouter = express.Router();
@@ -93,7 +92,7 @@ usersRouter.post("/login", async (req, res) => {
 
 const avatarStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "/../../tmp");
+    cb(null, "tmp");
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -105,18 +104,22 @@ const uploadAvatar = multer({ storage: avatarStorage });
 
 usersRouter.patch(
   "/avatars",
-
+  auth,
   uploadAvatar.single("avatar"),
   async (req, res) => {
     try {
+      console.log("User Data:", req.user);
       const { id: userId } = req.user;
+      console.log(req.user);
       const avatarPath = req.file.path;
+      console.log("Avatar Path:", avatarPath);
 
       const avatarURL = await resizeAndSaveAvatar(avatarPath, userId);
 
       return res.status(200).json({ avatarURL });
     } catch (error) {
       console.error("Error during avatar upload: ", error);
+      console.error(error.stack);
       res.status(500).json({ message: "Internal Server Error" });
     }
   }
@@ -128,7 +131,7 @@ usersRouter.get("/logout", auth, async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(401).json({ message: "Not authorized" }); // Unauthorized error
+      return res.status(401).json({ message: "Not authorized" });
     }
 
     user.token = null;

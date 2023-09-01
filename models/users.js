@@ -83,13 +83,20 @@ export const loginUser = async (body) => {
 
 export const resizeAndSaveAvatar = async (avatarPath, userId) => {
   try {
+    //czyta avatar uzywajac jimp + resize
     const avatar = await Jimp.read(avatarPath);
     avatar.resize(250, 250).write(avatarPath);
 
+    //bierze filename avatara
     const avatarFileName = path.basename(avatarPath);
-    const publicAvatarPath = path.join("../../public/avatars", avatarFileName);
+
+    //publ sciezka do folderu avatars
+    const publicAvatarPath = path.join("public/avatars", avatarFileName);
+
+    //zmiana sciezki
     await fs.rename(avatarPath, publicAvatarPath);
 
+    //zmiana info o avatarze w userze
     const user = await getUserById(userId);
     user.avatarURL = `/avatars/${avatarFileName}`;
     await user.save();
