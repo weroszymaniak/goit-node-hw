@@ -13,8 +13,6 @@ import {
 import Joi from "joi";
 import multer from "multer";
 import path from "path";
-import Jimp from "jimp";
-import fs from "fs/promises";
 
 dotenv.config();
 export const usersRouter = express.Router();
