@@ -37,7 +37,7 @@ export const auth = (req, res, next) => {
       return res.status(401).json({
         status: "error",
         code: 401,
-        message: "Not authorized",
+        message: "Not authorized. Please log in to access this resource.",
         data: "Unauthorized",
       });
     }
