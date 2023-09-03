@@ -1,4 +1,5 @@
 import express from "express";
+import { auth } from "../../config/config-passport.js";
 
 import {
   listContacts,
@@ -11,7 +12,7 @@ import {
 
 export const contactsRouter = express.Router();
 
-contactsRouter.get("/", async (req, res, next) => {
+contactsRouter.get("/", auth, async (req, res, next) => {
   try {
     const contacts = await listContacts();
     res.json({
