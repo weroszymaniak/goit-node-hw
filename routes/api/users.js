@@ -3,9 +3,16 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import User from "./../../service/schemas/users.js";
 import { auth } from "../../config/config-passport.js";
+import {
+  getUserById,
+  addUser,
+  loginUser,
+  resizeAndSaveAvatar,
+} from "../../models/users.js";
 
-import { getUserById, addUser, loginUser } from "../../models/users.js";
 import Joi from "joi";
+import multer from "multer";
+import path from "path";
 
 dotenv.config();
 export const usersRouter = express.Router();
@@ -31,6 +38,7 @@ usersRouter.post("/signup", async (req, res, next) => {
     }
 
     const { user } = result;
+
     return res.status(201).json({
       user: {
         email: user.email,
@@ -80,13 +88,48 @@ usersRouter.post("/login", async (req, res) => {
   }
 });
 
+const avatarStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "tmp");
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const uploadAvatar = multer({ storage: avatarStorage });
+
+usersRouter.patch(
+  "/avatars",
+  auth,
+  uploadAvatar.single("avatar"),
+  async (req, res) => {
+    try {
+      console.log("User Data:", req.user);
+      const { id: userId } = req.user;
+      console.log(req.user);
+      const avatarPath = req.file.path;
+      console.log("Avatar Path:", avatarPath);
+
+      const avatarURL = await resizeAndSaveAvatar(avatarPath, userId);
+
+      return res.status(200).json({ avatarURL });
+    } catch (error) {
+      console.error("Error during avatar upload: ", error);
+      console.error(error.stack);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+
 usersRouter.get("/logout", auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(401).json({ message: "Not authorized" }); // Unauthorized error
+      return res.status(401).json({ message: "Not authorized" });
     }
 
     user.token = null;

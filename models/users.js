@@ -1,5 +1,9 @@
 import User from "./../service/schemas/users.js";
 import bcrypt from "bcrypt";
+import gravatar from "gravatar";
+import Jimp from "jimp";
+import path from "path";
+import fs from "fs/promises";
 
 export const listUsers = async () => {
   try {
@@ -33,7 +37,12 @@ export const addUser = async (body) => {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = { ...body, password: hashedPassword };
+    const avatarURL = gravatar.url(email, {
+      s: "250",
+      r: "pg",
+      d: "identicon",
+    });
+    const newUser = { ...body, password: hashedPassword, avatarURL };
     const createdUser = await User.create(newUser);
 
     return {
@@ -69,5 +78,44 @@ export const loginUser = async (body) => {
   } catch (error) {
     console.error("Error logging: ", error);
     throw error;
+  }
+};
+
+export const resizeAndSaveAvatar = async (avatarPath, userId) => {
+  try {
+    const avatar = await Jimp.read(avatarPath);
+    avatar.resize(250, 250).write(avatarPath);
+
+    const avatarFileName = path.basename(avatarPath);
+
+    const publicAvatarPath = path.join("public/avatars", avatarFileName);
+
+    await fs.rename(avatarPath, publicAvatarPath);
+
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    user.avatarURL = `/avatars/${avatarFileName}`;
+    await user.save();
+
+    return user.avatarURL;
+  } catch (error) {
+    console.error("Error during avatar upload: ", error);
+    throw error;
+  }
+};
+
+export const patchAvatar = async (req, res) => {
+  try {
+    const { id: userId } = req.user;
+    const avatarPath = req.file.path;
+
+    const avatarURL = await resizeAndSaveAvatar(avatarPath, userId);
+
+    return res.status(200).json({ avatarURL });
+  } catch (error) {
+    console.error("Error during avatar upload: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
