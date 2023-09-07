@@ -4,6 +4,8 @@ import gravatar from "gravatar";
 import Jimp from "jimp";
 import path from "path";
 import fs from "fs/promises";
+import { nanoid } from "nanoid";
+import { sendVerificationEmail } from "../service/email/sendGridService.js";
 
 export const listUsers = async () => {
   try {
@@ -42,8 +44,17 @@ export const addUser = async (body) => {
       r: "pg",
       d: "identicon",
     });
-    const newUser = { ...body, password: hashedPassword, avatarURL };
+
+    const verificationToken = nanoid();
+
+    const newUser = {
+      ...body,
+      password: hashedPassword,
+      avatarURL,
+      verificationToken,
+    };
     const createdUser = await User.create(newUser);
+    await sendVerificationEmail(createdUser.email, verificationToken);
 
     return {
       status: 201,
@@ -117,5 +128,25 @@ export const patchAvatar = async (req, res) => {
   } catch (error) {
     console.error("Error during avatar upload: ", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const verifyUserByToken = async (verificationToken) => {
+  try {
+    const user = await User.findOne({ verificationToken });
+
+    if (!user) {
+      return { status: 404 };
+    }
+
+    // Update users fields
+    user.verify = true;
+    user.verificationToken = null;
+    await user.save();
+
+    return { status: 200, message: "Verification successful" };
+  } catch (error) {
+    console.error("Error during user verification: ", error);
+    throw error;
   }
 };

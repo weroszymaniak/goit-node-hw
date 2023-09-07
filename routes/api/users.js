@@ -9,10 +9,12 @@ import {
   loginUser,
   resizeAndSaveAvatar,
 } from "../../models/users.js";
+import { sendVerificationEmail } from "../../service/email/sendGridService.js";
 
 import Joi from "joi";
 import multer from "multer";
 import path from "path";
+import { nanoid } from "nanoid";
 
 dotenv.config();
 export const usersRouter = express.Router();
@@ -157,6 +159,62 @@ usersRouter.get("/current", auth, async (req, res) => {
     });
   } catch (error) {
     console.error("Error while fetching current user data: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+usersRouter.get("/verify/:verificationToken", async (req, res) => {
+  try {
+    const { verificationToken } = req.params;
+
+    const result = await verifyUserByToken(verificationToken);
+
+    if (result.status === 404) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: "Verification successful" });
+  } catch (error) {
+    console.error("Error during verification: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+usersRouter.post("/verify", async (req, res) => {
+  const resendValidationSchema = Joi.object({
+    email: Joi.string().email().required(),
+  });
+
+  const { error } = resendValidationSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: "Missing required field email" });
+  }
+
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.verify) {
+      return res
+        .status(400)
+        .json({ message: "Verification has already been passed" });
+    }
+
+    const newVerificationToken = nanoid();
+
+    user.verificationToken = newVerificationToken;
+    await user.save();
+
+    await sendVerificationEmail(email, newVerificationToken);
+
+    return res.status(200).json({ message: "Verification email sent" });
+  } catch (error) {
+    console.error("Error resending verification email: ", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
