@@ -1,14 +1,11 @@
 import { app } from "./app.js";
 import mongoose from "mongoose";
-// import { config } from "dotenv";
+import dotenv from "dotenv";
 
-// config();
-
-const MONGODB_URI =
-  "mongodb+srv://weronikaszymaniak:qUdZSdGWtJJG3OgX@hw03-mongodb.rxu1mbs.mongodb.net/db-contacts?retryWrites=true&w=majority";
+dotenv.config();
 
 mongoose
-  .connect(MONGODB_URI)
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("Database connection successful");
 
