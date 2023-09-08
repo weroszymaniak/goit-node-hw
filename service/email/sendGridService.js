@@ -1,19 +1,20 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 let msg;
 
 export const sendVerificationEmail = async (to, verificationToken) => {
+  const verificationLink = `${process.env.BASE_URL}/users/verify/${verificationToken}`;
+
   msg = {
     to,
     from: "weronika.szumigala@gmail.com",
     subject: "Verify Your Email",
-    text: `Click the following link to verify your email: ${
-      process.env.BASE_URL || "http://localhost:3000"
-    }/users/verify/${verificationToken}`,
-    html: `<p>Click the following link to verify your email: <a href="${
-      process.env.BASE_URL || "http://localhost:3000"
-    }/users/verify/${verificationToken}">Verify Email</a></p>`,
+    text: `Click the following link to verify your email:${verificationLink}`,
+    html: `<p>Click the following link to verify your email: <a href="${verificationLink}">Verify Email</a></p>`,
   };
 
   try {

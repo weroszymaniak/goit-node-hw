@@ -139,7 +139,6 @@ export const verifyUserByToken = async (verificationToken) => {
       return { status: 404 };
     }
 
-    // Update users fields
     user.verify = true;
     user.verificationToken = null;
     await user.save();

@@ -8,6 +8,7 @@ import {
   addUser,
   loginUser,
   resizeAndSaveAvatar,
+  verifyUserByToken,
 } from "../../models/users.js";
 import { sendVerificationEmail } from "../../service/email/sendGridService.js";
 
