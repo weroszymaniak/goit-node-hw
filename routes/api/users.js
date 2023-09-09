@@ -72,6 +72,10 @@ usersRouter.post("/login", async (req, res) => {
     if (!loginResult) {
       return res.status(401).json({ message: "Email or password is wrong" });
     }
+
+    if (!loginResult.user.verify) {
+      return res.status(403).json({ message: "Email not verified" });
+    }
     const payload = {
       id: loginResult.user.id,
       username: loginResult.user.email,
